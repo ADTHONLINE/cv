@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currículum Vitae</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .form input, .form textarea {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .cv-preview {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+            position: relative;
+        }
+        #profile-pic-preview {
+            max-width: 100px;
+            border-radius: 50%;
+            display: block;
+            margin: 0 auto 10px;
+        }
+        h2, h3, p {
+            margin: 0;
+            padding: 5px 0;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Currículum Vitae</h1>
+        <div class="form">
+            <input type="file" id="profile-pic" accept="image/*" onchange="previewImage(event)">
+            <input type="text" id="name" placeholder="Nombre Completo" oninput="updateCV()">
+            <input type="text" id="email" placeholder="Correo Electrónico" oninput="updateCV()">
+            <input type="date" id="birthdate" oninput="updateCV()">
+            <input type="text" id="age" placeholder="Edad" readonly>
+            <input type="text" id="phone" placeholder="Número de Celular" oninput="updateCV()">
+            <textarea id="experience" placeholder="Experiencia Laboral" oninput="updateCV()"></textarea>
+            <textarea id="education" placeholder="Educación" oninput="updateCV()"></textarea>
+            <textarea id="skills" placeholder="Habilidades" oninput="updateCV()"></textarea>
+            <div class="buttons">
+                <button id="save-btn">Guardar Datos</button>
+                <button id="download-btn">Descargar PDF</button>
+            </div>
+        </div>
+        <div class="cv-preview" id="cv-preview">
+            <img id="profile-pic-preview" src="" alt="Foto de Perfil">
+            <h2 id="name-preview"></h2>
+            <p id="email-preview"></p>
+            <p id="birthdate-preview"></p>
+            <p id="age-preview"></p>
+            <p id="phone-preview"></p>
+            <h3>Experiencia</h3>
+            <p id="experience-preview"></p>
+            <h3>Educación</h3>
+            <p id="education-preview"></p>
+            <h3>Habilidades</h3>
+            <p id="skills-preview"></p>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.getElementById('profile-pic-preview');
+                output.src = reader.result;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function updateCV() {
+            const birthdate = document.getElementById('birthdate').value;
+            const birthDateObj = new Date(birthdate);
+            const age = new Date().getFullYear() - birthDateObj.getFullYear();
+            const monthDiff = new Date().getMonth() - birthDateObj.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && new Date().getDate() < birthDateObj.getDate())) {
+                age--;
+            }
+
+            document.getElementById('age').value = age;
+            document.getElementById('name-preview').textContent = document.getElementById('name').value;
+            document.getElementById('email-preview').textContent = document.getElementById('email').value;
+            document.getElementById('birthdate-preview').textContent = "Fecha de Nacimiento: " + birthdate;
+            document.getElementById('age-preview').textContent = "Edad: " + age;
+            document.getElementById('phone-preview').textContent = "Celular: " + document.getElementById('phone').value;
+            document.getElementById('experience-preview').textContent = document.getElementById('experience').value;
+            document.getElementById('education-preview').textContent = document.getElementById('education').value;
+            document.getElementById('skills-preview').textContent = document.getElementById('skills').value;
+        }
+
+        document.getElementById('save-btn').onclick = function() {
+            const data = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                birthdate: document.getElementById('birthdate').value,
+                age: document.getElementById('age').value,
+                phone: document.getElementById('phone').value,
+                experience: document.getElementById('experience').value,
+                education: document.getElementById('education').value,
+                skills: document.getElementById('skills').value,
+                profilePic: document.getElementById('profile-pic-preview').src
+            };
+            localStorage.setItem('cvData', JSON.stringify(data));
+            alert('Datos guardados correctamente.');
+        };
+
+        document.getElementById('download-btn').onclick = function() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            if (!name || !email) {
+                alert("Por favor, complete todos los campos requeridos.");
+                return;
+            }
+
+            const element = document.getElementById('cv-preview');
+            const opt = {
+                margin: 1,
+                filename: 'curriculum-vitae.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().from(element).set(opt).save();
+        }
+    </script>
+</body>
+</html>
